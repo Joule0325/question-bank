@@ -1,333 +1,361 @@
 <template>
-<view class="layout-shell" @click="handleGlobalClick">
-<view class="app-sidebar">
-<view class="logo-area">题库</view>
-<view class="nav-items">
-<view class="nav-item" :class="{active: activeTab==='question_bank'}" @click="activeTab='question_bank'">
-<text class="nav-icon">📚</text><text class="nav-txt">题库</text>
-</view>
-<view class="nav-item" :class="{active: activeTab==='resources'}" @click="activeTab='resources'"><text class="nav-icon">📂</text><text class="nav-txt">资源</text></view>
-<view class="nav-item"><text class="nav-icon">📖</text><text class="nav-txt">讲义</text></view>
-<view class="nav-item"><text class="nav-icon">👥</text><text class="nav-txt">学员</text></view>
-<view class="nav-item"><text class="nav-icon">📅</text><text class="nav-txt">排课</text></view>
-</view>
-</view>
+  <view class="layout-shell" @click="handleGlobalClick">
+    <!-- Left Sidebar -->
+    <view class="app-sidebar">
+      <view class="logo-area">题库</view>
+      <view class="nav-items">
+        <!-- 1. Question Bank Tab -->
+        <view class="nav-item" :class="{active: activeTab==='question_bank'}" @click="activeTab='question_bank'">
+          <text class="nav-icon">📚</text><text class="nav-txt">题库</text>
+        </view>
+        <!-- 2. Class Tab -->
+        <view class="nav-item" :class="{active: activeTab==='class'}" @click="activeTab='class'">
+          <text class="nav-icon">👨‍🏫</text><text class="nav-txt">上课</text>
+        </view>
+        <!-- Other Tabs -->
+        <view class="nav-item" :class="{active: activeTab==='resources'}" @click="activeTab='resources'"><text class="nav-icon">📂</text><text class="nav-txt">资源</text></view>
+        <view class="nav-item"><text class="nav-icon">📖</text><text class="nav-txt">讲义</text></view>
+        <view class="nav-item"><text class="nav-icon">👥</text><text class="nav-txt">学员</text></view>
+        <view class="nav-item"><text class="nav-icon">📅</text><text class="nav-txt">排课</text></view>
+      </view>
+    </view>
 
-<view class="main-workspace" v-if="activeTab === 'question_bank'">
-<view class="top-header">
-<view></view>
-<view class="header-right">
-<text class="status-txt">共 {{ questions.length }} 条</text>
-<picker :range="[10, 20, 50]" @change="handlePageSizeChange">
-<text class="page-select">{{ itemsPerPage }}条/页 ▼</text>
-</picker>
-<view class="pagination">
-<button class="pg-btn" :disabled="currentPage===1" @click="changePage(-1)">&lt;</button>
-<text class="pg-num">{{ currentPage }} / {{ totalPages || 1 }}</text>
-<button class="pg-btn" :disabled="currentPage>=totalPages" @click="changePage(1)">&gt;</button>
-</view>
-</view>
-</view>
+    <!-- VIEW 1: Question Bank Workspace -->
+    <view class="main-workspace" v-if="activeTab === 'question_bank'">
+      <view class="top-header">
+        <view></view>
+        <view class="header-right">
+          <text class="status-txt">共 {{ questions.length }} 条</text>
+          <picker :range="[10, 20, 50]" @change="handlePageSizeChange">
+            <text class="page-select">{{ itemsPerPage }}条/页 ▼</text>
+          </picker>
+          <view class="pagination">
+            <button class="pg-btn" :disabled="currentPage===1" @click="changePage(-1)">&lt;</button>
+            <text class="pg-num">{{ currentPage }} / {{ totalPages || 1 }}</text>
+            <button class="pg-btn" :disabled="currentPage>=totalPages" @click="changePage(1)">&gt;</button>
+          </view>
+        </view>
+      </view>
 
-<view class="workspace-body">
-<view class="resource-sidebar-wrapper">
-<view class="resource-sidebar">
-<view class="res-header">
-<view class="subject-wrapper" @click.stop="subjectDropdownOpen = !subjectDropdownOpen">
-<view class="subject-btn"><text>{{ currentSubjectName }}</text><text class="arrow">▼</text></view>
-<view class="custom-subject-dropdown" v-if="subjectDropdownOpen">
-<view class="sub-item" v-for="(sub, index) in subjects" :key="sub.id" @click.stop="selectSubject(index)" :class="{ active: currentSubjectIdx === index }">{{ sub.title }}</view>
-</view>
-</view>
-<view class="setting-wrapper" @mouseenter="manageMenuOpen = true" @mouseleave="manageMenuOpen = false">
-<view class="setting-btn custom-menu-icon">
-   <view class="menu-line"></view>
-   <view class="menu-line"></view>
-   <view class="menu-line"></view>
-</view>
-<view class="popover-menu" v-if="manageMenuOpen">
-<view class="menu-item header">目录管理</view>
-<view class="menu-item" @click="openSubjectModal">目录类型编辑</view>
-<view class="menu-item" @click="openContentModal">目录内容管理</view>
-<view class="divider-h"></view>
-<view class="menu-item" @click="toggleExpandAll(true)">展开所有目录</view>
-<view class="menu-item" @click="toggleExpandAll(false)">折叠所有目录</view>
-</view>
-</view>
-</view>
+      <!-- Workspace Body -->
+      <view class="workspace-body">
+        
+        <!-- 1. Resource Sidebar -->
+        <view class="resource-sidebar-wrapper">
+          <view class="resource-sidebar">
+            <view class="res-header">
+              <view class="subject-wrapper" @click.stop="subjectDropdownOpen = !subjectDropdownOpen">
+                <view class="subject-btn"><text>{{ currentSubjectName }}</text><text class="arrow">▼</text></view>
+                <view class="custom-subject-dropdown" v-if="subjectDropdownOpen">
+                  <view class="sub-item" v-for="(sub, index) in subjects" :key="sub.id" @click.stop="selectSubject(index)" :class="{ active: currentSubjectIdx === index }">{{ sub.title }}</view>
+                </view>
+              </view>
+              <view class="setting-wrapper" @mouseenter="manageMenuOpen = true" @mouseleave="manageMenuOpen = false">
+                <view class="setting-btn custom-menu-icon">
+                  <view class="menu-line"></view>
+                  <view class="menu-line"></view>
+                  <view class="menu-line"></view>
+                </view>
+                <view class="popover-menu" v-if="manageMenuOpen">
+                  <view class="menu-item header">目录管理</view>
+                  <view class="menu-item" @click="openSubjectModal">目录类型编辑</view>
+                  <view class="menu-item" @click="openContentModal">目录内容管理</view>
+                  <view class="divider-h"></view>
+                  <view class="menu-item" @click="toggleExpandAll(true)">展开所有目录</view>
+                  <view class="menu-item" @click="toggleExpandAll(false)">折叠所有目录</view>
+                </view>
+              </view>
+            </view>
 
-<view class="search-bar-row">
-<view class="search-wrap">
-<input class="search-input" v-model="catSearch" placeholder="搜索知识点..." @confirm="handleCatSearch" />
-</view>
-<view class="multi-switch" @click="isMultiSelect = !isMultiSelect" :class="{active: isMultiSelect}" title="开启多选">
-<text class="switch-txt">多选</text>
-<view class="switch-btn"></view>
-</view>
-</view>
+            <view class="search-bar-row">
+              <view class="search-wrap">
+                <input class="search-input" v-model="catSearch" placeholder="搜索知识点..." @confirm="handleCatSearch" />
+              </view>
+              <view class="multi-switch" @click="isMultiSelect = !isMultiSelect" :class="{active: isMultiSelect}" title="开启多选">
+                <text class="switch-txt">多选</text>
+                <view class="switch-btn"></view>
+              </view>
+            </view>
 
-<view class="tree-scroll">
-  <CategoryTree 
-    v-for="cat in categories" 
-    :key="cat.id" 
-    :node="cat" 
-    :level="0"
-    :selectedIds="selectedCategoryIds"
-    :defaultOpen="defaultTreeOpen"
-    :expandedIds="treeExpandedIds"
-    @select="handleTreeSelect"
-  />
-</view>
-</view>
-</view>
+            <view class="tree-scroll">
+              <CategoryTree 
+                v-for="cat in categories" 
+                :key="cat.id" 
+                :node="cat" 
+                :level="0"
+                :selectedIds="selectedCategoryIds"
+                :defaultOpen="defaultTreeOpen"
+                :expandedIds="treeExpandedIds"
+                @select="handleTreeSelect"
+              ></CategoryTree>
+            </view>
+          </view>
+        </view>
 
-<view class="content-canvas">
-<view class="filter-bar">
-<view class="f-row">
-<text class="f-label">题型:</text>
-<view class="f-tags">
-<text class="tag" :class="{active: selectedType==='全部'}" @click="selectedType='全部'">全部</text>
-<text class="tag" v-for="t in ['单选题','多选题','填空题','解答题']" :key="t" :class="{active: selectedType===t}" @click="selectedType=t">{{ t }}</text>
-</view>
-</view>
-<view class="f-row mt-2">
-<text class="f-label">难度:</text>
-<view class="f-tags">
-<text class="tag" :class="{active: selectedDiff==='全部'}" @click="selectedDiff='全部'">全部</text>
-<text class="tag" v-for="d in [1,2,3,4,5]" :key="d" :class="{active: selectedDiff===d}" @click="selectedDiff=d">{{ '★'.repeat(d) }}</text>
-</view>
-</view>
-<view class="f-row mt-2" v-if="allActiveFilters.length > 0">
-<text class="f-label">筛选:</text>
-<view class="f-tags">
-<view v-for="item in allActiveFilters" :key="item.id" class="tag-chip blue">
-{{ item.name }} <text class="x-btn" @click.stop="removeFilter(item)">✕</text>
-</view>
-<text class="clear-link" @click="clearAllFilters">清空</text>
-</view>
-</view>
-</view>
+        <!-- 2. Content Canvas -->
+        <view class="content-canvas">
+          <view class="filter-bar">
+            <view class="f-row">
+              <text class="f-label">题型:</text>
+              <view class="f-tags">
+                <text class="tag" :class="{active: selectedType==='全部'}" @click="selectedType='全部'">全部</text>
+                <text class="tag" v-for="t in ['单选题','多选题','填空题','解答题']" :key="t" :class="{active: selectedType===t}" @click="selectedType=t">{{ t }}</text>
+              </view>
+            </view>
+            <view class="f-row mt-2">
+              <text class="f-label">难度:</text>
+              <view class="f-tags">
+                <text class="tag" :class="{active: selectedDiff==='全部'}" @click="selectedDiff='全部'">全部</text>
+                <text class="tag" v-for="d in [1,2,3,4,5]" :key="d" :class="{active: selectedDiff===d}" @click="selectedDiff=d">{{ '★'.repeat(d) }}</text>
+              </view>
+            </view>
+            <view class="f-row mt-2" v-if="allActiveFilters.length > 0">
+              <text class="f-label">筛选:</text>
+              <view class="f-tags">
+                <view v-for="item in allActiveFilters" :key="item.id" class="tag-chip blue">
+                  {{ item.name }} <text class="x-btn" @click.stop="removeFilter(item)">✕</text>
+                </view>
+                <text class="clear-link" @click="clearAllFilters">清空</text>
+              </view>
+            </view>
+          </view>
 
-<scroll-view scroll-y class="list-scroll">
-<view v-if="loading" class="state-txt">加载中...</view>
-<view v-else-if="questions.length===0" class="state-txt">暂无题目</view>
-<view v-for="q in displayedQuestions" :key="q.id" class="q-card">
-<view class="q-header">
-<view class="meta-left">
-<text class="m-year">{{ q.year }}</text>
-<text class="m-src">{{ q.source }}</text>
-<text class="m-code">#{{ q.qNumber }}</text>
-<text class="m-type">[{{ q.type }}]</text>
-<text class="m-diff">{{ '★'.repeat(q.difficulty) }}</text>
-</view>
-<view class="meta-right">
-<text class="op-btn blue" @click="openEditModal(q)">编辑</text>
-<text class="op-btn red" @click="handleDelete(q.id)">删除</text>
-</view>
-</view>
-<view class="q-body" @click="toggleAnswer(q.id)">
-<view class="body-row">
-<view class="q-title"><LatexText :text="q.title" /></view>
-<image v-if="q.image" :src="q.image" mode="aspectFit" class="q-img" />
-</view>
-<view v-if="q.options && (q.type.includes('单选') || q.type.includes('多选'))" class="opt-grid" :class="'cols-'+(q.optionLayout||4)">
-<view v-for="(val, key) in q.options" :key="key" class="opt-item"><text class="opt-key">{{ key }}.</text><LatexText :text="val" /></view>
-</view>
-<view v-if="showAnswerMap[q.id]" class="answer-box"><text class="ans-label">【答案】</text><LatexText :text="q.answer" /></view>
-</view>
-<view class="q-footer">
-<view class="tags-row">
-<view v-for="tag in [...getKnowledgeTags(q.categoryIds), ...(q.tags||[])]" :key="tag.id || tag" class="tag-badge" @click.stop="handleTagClick(tag.title || tag)">🏷️ {{ tag.title || tag }}</view>
-<text class="hash-code">#{{ q.code }}</text>
-</view>
-<view class="basket-add-btn" :class="{waiting: waitingBasketKey===q.id}" @click.stop="toggleWaiting(q.id)">+</view>
-</view>
-</view>
-<view style="height: 40px;"></view>
-</scroll-view>
-</view>
+          <scroll-view scroll-y class="list-scroll">
+            <view v-if="loading" class="state-txt">加载中...</view>
+            <view v-else-if="questions.length===0" class="state-txt">暂无题目</view>
+            <view v-for="q in displayedQuestions" :key="q.id" class="q-card">
+              <view class="q-header">
+                <view class="meta-left">
+                  <text class="m-year">{{ q.year }}</text>
+                  <text class="m-src">{{ q.source }}</text>
+                  <text class="m-code">#{{ q.qNumber }}</text>
+                  <text class="m-type">[{{ q.type }}]</text>
+                  <text class="m-diff">{{ '★'.repeat(q.difficulty) }}</text>
+                </view>
+                <view class="meta-right">
+                  <text class="op-btn blue" @click="openEditModal(q)">编辑</text>
+                  <text class="op-btn red" @click="handleDelete(q.id)">删除</text>
+                </view>
+              </view>
+              <view class="q-body" @click="toggleAnswer(q.id)">
+                <view class="body-row">
+                  <view class="q-title"><LatexText :text="q.title"></LatexText></view>
+                  <image v-if="q.image" :src="q.image" mode="aspectFit" class="q-img" />
+                </view>
+                <view v-if="q.options && (q.type.includes('单选') || q.type.includes('多选'))" class="opt-grid" :class="'cols-'+(q.optionLayout||4)">
+                  <view v-for="(val, key) in q.options" :key="key" class="opt-item"><text class="opt-key">{{ key }}.</text><LatexText :text="val"></LatexText></view>
+                </view>
+                <view v-if="showAnswerMap[q.id]" class="answer-box"><text class="ans-label">【答案】</text><LatexText :text="q.answer"></LatexText></view>
+              </view>
+              <view class="q-footer">
+                <view class="tags-row">
+                  <view v-for="tag in [...getKnowledgeTags(q.categoryIds), ...(q.tags||[])]" :key="tag.id || tag" class="tag-badge" @click.stop="handleTagClick(tag.title || tag)">🏷️ {{ tag.title || tag }}</view>
+                  <text class="hash-code">#{{ q.code }}</text>
+                </view>
+                <view class="basket-add-btn" :class="{waiting: waitingBasketKey===q.id}" @click.stop="toggleWaiting(q.id)">+</view>
+              </view>
+            </view>
+            <view style="height: 40px;"></view>
+          </scroll-view>
+        </view>
 
-<view class="right-toolbar">
-<text class="tool-head">工具</text>
-<view class="tool-btn primary" @click="openAddModal"><text class="t-icon">➕</text><text class="t-lbl">录题</text></view>
-<view class="tool-btn"><text class="t-icon">📄</text><text class="t-lbl">批量</text></view>
-<view class="divider"></view>
-<text class="tool-head">试题篮</text>
-<view class="basket-col">
-<view v-for="n in 7" :key="n" class="basket-circle" @click="activeBasketId=n">
-{{ n }}<view v-if="baskets[n].length" class="badge">{{ baskets[n].length }}</view>
-</view>
-</view>
-</view>
-</view>
-</view>
-<view class="main-workspace empty-state" v-else>
-<view class="empty-content"><text class="empty-icon">🚧</text><text class="empty-text">功能开发中...</text></view>
-</view>
+        <!-- 3. Right Toolbar -->
+        <view class="right-toolbar">
+          <text class="tool-head">工具</text>
+          <view class="tool-btn primary" @click="openAddModal"><text class="t-icon">➕</text><text class="t-lbl">录题</text></view>
+          <view class="tool-btn"><text class="t-icon">📄</text><text class="t-lbl">批量</text></view>
+          <view class="divider"></view>
+          <text class="tool-head">试题篮</text>
+          <view class="basket-col">
+            <view v-for="n in 7" :key="n" class="basket-circle" @click="activeBasketId=n">
+              {{ n }}<view v-if="baskets[n].length" class="badge">{{ baskets[n].length }}</view>
+            </view>
+          </view>
+        </view>
 
-<!-- 1. Subject Management Modal -->
-<CommonModal :isOpen="showSubjectModal" title="目录类型编辑 (科目)" maxWidth="500px" @close="showSubjectModal=false">
-<view class="list-editor">
-<view class="le-toolbar">
-<view class="tb-btn" @click="addSubjectRow"><text>➕ 添加</text></view>
-<view class="tb-btn red" @click="deleteSelectedSubjects"><text>🗑️ 删除</text></view>
-<view class="tb-divider"></view>
-<view class="tb-btn" @click="moveSubject('up')"><text>⬆️ 上移</text></view>
-<view class="tb-btn" @click="moveSubject('down')"><text>⬇️ 下移</text></view>
-<view class="tb-divider"></view>
-<view class="tb-btn" @click="listSelectAll(subjectList)"><text>☑️ 全选</text></view>
-<view class="tb-btn" @click="listInverseSelect(subjectList)"><text>🔄 反选</text></view>
-</view>
-<view class="le-header">
-<text class="col-chk">选</text>
-<text class="col-title">可编辑目录类型</text>
-</view>
-<scroll-view scroll-y class="le-body h-300">
-<view v-for="(item, idx) in subjectList" :key="item.id || idx" class="le-row" :class="{checked: item.checked}" @click="item.checked=!item.checked">
-<view class="col-chk"><text v-if="item.checked" class="chk-icon">✓</text></view>
-<input class="col-input" v-model="item.title" @click.stop placeholder="输入名称" />
-</view>
-</scroll-view>
-<view class="foot-btns">
-<button class="btn" @click="showSubjectModal=false">取消</button>
-<button class="btn primary" @click="saveSubjects">保存修改</button>
-</view>
-</view>
-</CommonModal>
+      </view> <!-- End Workspace Body -->
+    </view> <!-- End Question Bank Workspace -->
 
-<!-- 2. Content Management Modal -->
-<CommonModal :isOpen="showContentModal" title="目录内容管理" maxWidth="900px" @close="showContentModal=false">
-<view class="content-manage-layout">
-<!-- Left Tree -->
-<view class="cm-left">
-<scroll-view scroll-y class="cm-tree-scroll">
-<CategoryTree 
-v-for="cat in manageTreeData" 
-:key="cat.id" 
-:node="cat" 
-:level="0"
-:selectedIds="manageSelectedId ? [manageSelectedId] : []"
-:defaultOpen="manageTreeExpandAll"
-@select="handleManageTreeSelect"
-/>
-<!-- Root add helper if tree is empty -->
-<view v-if="manageTreeData.length===0" class="empty-tip">暂无目录，请在右侧添加</view>
-</scroll-view>
-</view>
+    <!-- VIEW 2: Class/Whiteboard Workspace -->
+    <view class="main-workspace" v-else-if="activeTab === 'class'">
+        <view class="whiteboard-wrapper">
+            <Whiteboard></Whiteboard>
+        </view>
+    </view>
 
-<!-- Right Edit Area -->
-<view class="cm-right">
-<!-- Top: Edit Current Node -->
-<view class="cm-box mb-2">
-<view class="box-title">当前选择的目录</view>
-<view class="box-body" v-if="currentManageNode">
-<view class="form-row">
-<text class="lbl">名称</text>
-<input class="inp flex-1" v-model="currentManageNode.title" />
-</view>
-<view class="form-row mt-2">
-<text class="lbl">颜色</text>
-<view class="color-opts">
-<view v-for="c in colorOptions" :key="c" class="c-circle" :style="{background: c}" 
-:class="{active: currentManageNode.color === c}"
-@click="currentManageNode.color = c"></view>
-<view class="c-circle remove" @click="currentManageNode.color = ''">✕</view>
-</view>
-</view>
-<view class="row-end mt-2">
-<button class="btn sm red" @click="deleteCurrentNode">删除目录及其子目录</button>
-<button class="btn sm primary ml-2" @click="saveCurrentNodeInfo">保存信息</button>
-</view>
-</view>
-<view class="box-body center-txt" v-else>请在左侧选择一个目录 (或根目录)</view>
-</view>
+    <!-- VIEW 3: Others (Empty) -->
+    <view class="main-workspace empty-state" v-else>
+      <view class="empty-content"><text class="empty-icon">🚧</text><text class="empty-text">功能开发中...</text></view>
+    </view>
 
-<!-- Bottom: Manage Children -->
-<view class="cm-box flex-1">
-<view class="box-title">{{ currentManageNode ? `[${currentManageNode.title}] 的子目录` : '一级目录管理' }}</view>
-<view class="list-editor flat">
-<view class="le-toolbar sm">
-<view class="tb-btn" @click="addManageChild"><text>➕ 添加</text></view>
-<view class="tb-btn red" @click="deleteManageChildren"><text>🗑️ 删除</text></view>
-<view class="tb-divider"></view>
-<view class="tb-btn" @click="moveManageChild('up')"><text>⬆️</text></view>
-<view class="tb-btn" @click="moveManageChild('down')"><text>⬇️</text></view>
-<view class="tb-divider"></view>
-<view class="tb-btn" @click="listSelectAll(currentChildrenList)"><text>All</text></view>
-<view class="tb-btn" @click="listInverseSelect(currentChildrenList)"><text>Inv</text></view>
-</view>
-<scroll-view scroll-y class="le-body flex-1">
-<view v-for="(item, idx) in currentChildrenList" :key="item.id || idx" class="le-row" :class="{checked: item.checked}" @click="item.checked=!item.checked">
-<view class="col-chk"><text v-if="item.checked" class="chk-icon">✓</text></view>
-<view class="col-color-dot" :style="{background: item.color || '#ccc'}"></view>
-<input class="col-input" v-model="item.title" @click.stop />
-</view>
-</scroll-view>
-<view class="foot-btns">
-<button class="btn primary full" @click="saveChildrenList">保存子目录列表</button>
-</view>
-</view>
-</view>
-</view>
-</view>
-</CommonModal>
+    <!-- MODALS -->
+    <!-- 1. Subject Management Modal -->
+    <CommonModal :isOpen="showSubjectModal" title="目录类型编辑 (科目)" maxWidth="500px" @close="showSubjectModal=false">
+      <view class="list-editor">
+        <view class="le-toolbar">
+          <view class="tb-btn" @click="addSubjectRow"><text>➕ 添加</text></view>
+          <view class="tb-btn red" @click="deleteSelectedSubjects"><text>🗑️ 删除</text></view>
+          <view class="tb-divider"></view>
+          <view class="tb-btn" @click="moveSubject('up')"><text>⬆️ 上移</text></view>
+          <view class="tb-btn" @click="moveSubject('down')"><text>⬇️ 下移</text></view>
+          <view class="tb-divider"></view>
+          <view class="tb-btn" @click="listSelectAll(subjectList)"><text>☑️ 全选</text></view>
+          <view class="tb-btn" @click="listInverseSelect(subjectList)"><text>🔄 反选</text></view>
+        </view>
+        <view class="le-header">
+          <text class="col-chk">选</text>
+          <text class="col-title">可编辑目录类型</text>
+        </view>
+        <scroll-view scroll-y class="le-body h-300">
+          <view v-for="(item, idx) in subjectList" :key="item.id || idx" class="le-row" :class="{checked: item.checked}" @click="item.checked=!item.checked">
+            <view class="col-chk"><text v-if="item.checked" class="chk-icon">✓</text></view>
+            <input class="col-input" v-model="item.title" @click.stop placeholder="输入名称" />
+          </view>
+        </scroll-view>
+        <view class="foot-btns">
+          <button class="btn" @click="showSubjectModal=false">取消</button>
+          <button class="btn primary" @click="saveSubjects">保存修改</button>
+        </view>
+      </view>
+    </CommonModal>
 
-<CommonModal :isOpen="showAddModal" :title="isEditing?'编辑题目':'录入题目'" maxWidth="800px" @close="showAddModal=false">
-<view class="form-layout" @click="closeKpDropdown">
-<view class="row-4">
-<view class="f-item"><text class="lbl">年份</text><input class="inp" v-model="formData.year" placeholder="2023年"/></view>
-<view class="f-item"><text class="lbl">来源</text><input class="inp" v-model="formData.source" placeholder="成都一诊"/></view>
-<view class="f-item"><text class="lbl">题号</text><input class="inp" v-model="formData.qNumber" placeholder="第1题"/></view>
-<view class="f-item"><text class="lbl">难度</text><input class="inp" type="number" v-model="formData.difficulty" /></view>
-</view>
-<view class="row-flex mt-2">
-<view class="f-item w-30"><text class="lbl">题型</text>
-<picker :range="['单选题','多选题','填空题','解答题']" @change="e => formData.type=['单选题','多选题','填空题','解答题'][e.detail.value]"><view class="picker-view">{{ formData.type }}</view></picker>
-</view>
-<view class="f-item flex-1 ml-2 rel" @click.stop>
-<text class="lbl">知识点 (搜)</text>
-<input class="inp" v-model="kpSearch" placeholder="输入搜索..." @input="handleKpSearch" @focus="handleKpSearch" />
-<view class="dropdown" v-if="kpSearch && kpSearchResults.length">
-<view class="dd-item" v-for="k in kpSearchResults" :key="k.id" @click="addCategory(k.id)">
-<view class="dd-col"><text class="dd-title">{{ k.title }}</text><text class="dd-path">{{ k.fullPath }}</text></view>
-<text class="chk" v-if="formData.categoryIds.includes(k.id)">✓</text>
-</view>
-</view>
-</view>
-<view class="f-item w-10 center justify-end pb-1"><text class="icon-btn" @click="showUploadModal=true">📷</text></view>
-</view>
-<view class="tags-input-area mt-2">
-<view v-for="k in getKnowledgeTags(formData.categoryIds)" :key="k.id" class="tag-chip blue">{{ k.title }} <text @click="removeCategory(k.id)">✕</text></view>
-<view v-for="(t,i) in formData.tags" :key="i" class="tag-chip white">{{ t }} <text @click="removeTag(i)">✕</text></view>
-<input class="inp-noborder" v-model="tagInput" placeholder="输入标签回车" @confirm="addTag" />
-<text class="add-txt" @click="addTag">添加</text>
-</view>
-<view class="f-item mt-2">
-<view class="row-btw"><text class="lbl">题干</text><text v-if="formData.image" class="sm-txt blue">已含图</text></view>
-<textarea class="txt-area h-24" v-model="formData.title" placeholder="支持 LaTeX"></textarea>
-</view>
-<view v-if="['单选题','多选题'].includes(formData.type)" class="opt-setting mt-2">
-<view class="row-btw mb-1"><text class="lbl">选项</text><picker :range="['1列','2列','4列']" @change="e => formData.optionLayout=[1,2,4][e.detail.value]"><text class="sm-txt">布局: {{ formData.optionLayout }}列</text></picker></view>
-<view class="grid-2"><view v-for="k in ['A','B','C','D']" :key="k" class="row-ac"><text class="bold mr-1">{{k}}.</text><input class="inp" v-model="formData.options[k]"/></view></view>
-</view>
-<view class="f-item mt-2"><text class="lbl">答案解析</text><textarea class="txt-area h-20" v-model="formData.answer"></textarea></view>
-<view class="foot-btns"><button class="btn" @click="showAddModal=false">取消</button><button class="btn primary" @click="handleSave">保存</button></view>
-</view>
-</CommonModal>
-<CommonModal :isOpen="showUploadModal" title="上传配图" maxWidth="400px" @close="showUploadModal=false">
-<view class="upload-zone" @click="chooseImage">
-<text class="cam-icon">📷</text><text class="tip">点击选择图片上传</text>
-<image v-if="formData.image" :src="formData.image" mode="aspectFit" class="prev-img-lg" />
-</view>
-<button class="btn full mt-2" v-if="formData.image" @click="formData.image=''">清除图片</button>
-</CommonModal>
-<CommonModal :isOpen="activeBasketId!==null" :title="'试题篮 '+activeBasketId" maxWidth="600px" @close="activeBasketId=null">
-<view class="row-btw mb-2"><text>共 {{ baskets[activeBasketId]?.length||0 }} 题</text><text class="link-btn" @click="exportLatex">导出LaTeX</text></view>
-<scroll-view scroll-y class="basket-scroll">
-<view v-for="q in baskets[activeBasketId]||[]" :key="q.id" class="basket-row"><text class="trunc">#{{q.id}} {{q.title}}</text><text class="del-x" @click="removeFromBasket(activeBasketId, q.id)">✕</text></view>
-</scroll-view>
-</CommonModal>
-</view>
+    <!-- 2. Content Management Modal -->
+    <CommonModal :isOpen="showContentModal" title="目录内容管理" maxWidth="900px" @close="showContentModal=false">
+      <view class="content-manage-layout">
+        <!-- Left Tree -->
+        <view class="cm-left">
+          <scroll-view scroll-y class="cm-tree-scroll">
+            <CategoryTree 
+              v-for="cat in manageTreeData" 
+              :key="cat.id" 
+              :node="cat" 
+              :level="0"
+              :selectedIds="manageSelectedId ? [manageSelectedId] : []"
+              :defaultOpen="manageTreeExpandAll"
+              @select="handleManageTreeSelect"
+            ></CategoryTree>
+            <view v-if="manageTreeData.length===0" class="empty-tip">暂无目录，请在右侧添加</view>
+          </scroll-view>
+        </view>
+
+        <!-- Right Edit Area -->
+        <view class="cm-right">
+          <view class="cm-box mb-2">
+            <view class="box-title">当前选择的目录</view>
+            <view class="box-body" v-if="currentManageNode">
+              <view class="form-row">
+                <text class="lbl">名称</text>
+                <input class="inp flex-1" v-model="currentManageNode.title" />
+              </view>
+              <view class="form-row mt-2">
+                <text class="lbl">颜色</text>
+                <view class="color-opts">
+                  <view v-for="c in colorOptions" :key="c" class="c-circle" :style="{background: c}" 
+                    :class="{active: currentManageNode.color === c}"
+                    @click="currentManageNode.color = c"></view>
+                  <view class="c-circle remove" @click="currentManageNode.color = ''">✕</view>
+                </view>
+              </view>
+              <view class="row-end mt-2">
+                <button class="btn sm red" @click="deleteCurrentNode">删除目录及其子目录</button>
+                <button class="btn sm primary ml-2" @click="saveCurrentNodeInfo">保存信息</button>
+              </view>
+            </view>
+            <view class="box-body center-txt" v-else>请在左侧选择一个目录 (或根目录)</view>
+          </view>
+
+          <!-- Bottom: Manage Children -->
+          <view class="cm-box flex-1">
+            <view class="box-title">{{ currentManageNode ? `[${currentManageNode.title}] 的子目录` : '一级目录管理' }}</view>
+            <view class="list-editor flat">
+              <view class="le-toolbar sm">
+                <view class="tb-btn" @click="addManageChild"><text>➕ 添加</text></view>
+                <view class="tb-btn red" @click="deleteManageChildren"><text>🗑️ 删除</text></view>
+                <view class="tb-divider"></view>
+                <view class="tb-btn" @click="moveManageChild('up')"><text>⬆️</text></view>
+                <view class="tb-btn" @click="moveManageChild('down')"><text>⬇️</text></view>
+                <view class="tb-divider"></view>
+                <view class="tb-btn" @click="listSelectAll(currentChildrenList)"><text>All</text></view>
+                <view class="tb-btn" @click="listInverseSelect(currentChildrenList)"><text>Inv</text></view>
+              </view>
+              <scroll-view scroll-y class="le-body flex-1">
+                <view v-for="(item, idx) in currentChildrenList" :key="item.id || idx" class="le-row" :class="{checked: item.checked}" @click="item.checked=!item.checked">
+                  <view class="col-chk"><text v-if="item.checked" class="chk-icon">✓</text></view>
+                  <view class="col-color-dot" :style="{background: item.color || '#ccc'}"></view>
+                  <input class="col-input" v-model="item.title" @click.stop />
+                </view>
+              </scroll-view>
+              <view class="foot-btns">
+                <button class="btn primary full" @click="saveChildrenList">保存子目录列表</button>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </CommonModal>
+
+    <!-- 3. Add/Edit Modal -->
+    <CommonModal :isOpen="showAddModal" :title="isEditing?'编辑题目':'录入题目'" maxWidth="800px" @close="showAddModal=false">
+      <view class="form-layout" @click="closeKpDropdown">
+        <view class="row-4">
+          <view class="f-item"><text class="lbl">年份</text><input class="inp" v-model="formData.year" placeholder="2023年"/></view>
+          <view class="f-item"><text class="lbl">来源</text><input class="inp" v-model="formData.source" placeholder="成都一诊"/></view>
+          <view class="f-item"><text class="lbl">题号</text><input class="inp" v-model="formData.qNumber" placeholder="第1题"/></view>
+          <view class="f-item"><text class="lbl">难度</text><input class="inp" type="number" v-model="formData.difficulty" /></view>
+        </view>
+        <view class="row-flex mt-2">
+          <view class="f-item w-30"><text class="lbl">题型</text>
+            <picker :range="['单选题','多选题','填空题','解答题']" @change="e => formData.type=['单选题','多选题','填空题','解答题'][e.detail.value]"><view class="picker-view">{{ formData.type }}</view></picker>
+          </view>
+          <view class="f-item flex-1 ml-2 rel" @click.stop>
+            <text class="lbl">知识点 (搜)</text>
+            <input class="inp" v-model="kpSearch" placeholder="输入搜索..." @input="handleKpSearch" @focus="handleKpSearch" />
+            <view class="dropdown" v-if="kpSearch && kpSearchResults.length">
+              <view class="dd-item" v-for="k in kpSearchResults" :key="k.id" @click="addCategory(k.id)">
+                <view class="dd-col"><text class="dd-title">{{ k.title }}</text><text class="dd-path">{{ k.fullPath }}</text></view>
+                <text class="chk" v-if="formData.categoryIds.includes(k.id)">✓</text>
+              </view>
+            </view>
+          </view>
+          <view class="f-item w-10 center justify-end pb-1"><text class="icon-btn" @click="showUploadModal=true">📷</text></view>
+        </view>
+        <view class="tags-input-area mt-2">
+          <view v-for="k in getKnowledgeTags(formData.categoryIds)" :key="k.id" class="tag-chip blue">{{ k.title }} <text @click="removeCategory(k.id)">✕</text></view>
+          <view v-for="(t,i) in formData.tags" :key="i" class="tag-chip white">{{ t }} <text @click="removeTag(i)">✕</text></view>
+          <input class="inp-noborder" v-model="tagInput" placeholder="输入标签回车" @confirm="addTag" />
+          <text class="add-txt" @click="addTag">添加</text>
+        </view>
+        <view class="f-item mt-2">
+          <view class="row-btw"><text class="lbl">题干</text><text v-if="formData.image" class="sm-txt blue">已含图</text></view>
+          <textarea class="txt-area h-24" v-model="formData.title" placeholder="支持 LaTeX"></textarea>
+        </view>
+        <view v-if="['单选题','多选题'].includes(formData.type)" class="opt-setting mt-2">
+          <view class="row-btw mb-1"><text class="lbl">选项</text><picker :range="['1列','2列','4列']" @change="e => formData.optionLayout=[1,2,4][e.detail.value]"><text class="sm-txt">布局: {{ formData.optionLayout }}列</text></picker></view>
+          <view class="grid-2"><view v-for="k in ['A','B','C','D']" :key="k" class="row-ac"><text class="bold mr-1">{{k}}.</text><input class="inp" v-model="formData.options[k]"/></view></view>
+        </view>
+        <view class="f-item mt-2"><text class="lbl">答案解析</text><textarea class="txt-area h-20" v-model="formData.answer"></textarea></view>
+        <view class="foot-btns"><button class="btn" @click="showAddModal=false">取消</button><button class="btn primary" @click="handleSave">保存</button></view>
+      </view>
+    </CommonModal>
+
+    <!-- 4. Upload Modal -->
+    <CommonModal :isOpen="showUploadModal" title="上传配图" maxWidth="400px" @close="showUploadModal=false">
+      <view class="upload-zone" @click="chooseImage">
+        <text class="cam-icon">📷</text><text class="tip">点击选择图片上传</text>
+        <image v-if="formData.image" :src="formData.image" mode="aspectFit" class="prev-img-lg" />
+      </view>
+      <button class="btn full mt-2" v-if="formData.image" @click="formData.image=''">清除图片</button>
+    </CommonModal>
+
+    <!-- 5. Basket Modal -->
+    <CommonModal :isOpen="activeBasketId!==null" :title="'试题篮 '+activeBasketId" maxWidth="600px" @close="activeBasketId=null">
+      <view class="row-btw mb-2"><text>共 {{ baskets[activeBasketId]?.length||0 }} 题</text><text class="link-btn" @click="exportLatex">导出LaTeX</text></view>
+      <scroll-view scroll-y class="basket-scroll">
+        <view v-for="q in baskets[activeBasketId]||[]" :key="q.id" class="basket-row"><text class="trunc">#{{q.id}} {{q.title}}</text><text class="del-x" @click="removeFromBasket(activeBasketId, q.id)">✕</text></view>
+      </scroll-view>
+    </CommonModal>
+
+  </view> <!-- Close layout-shell -->
 </template>
 
 <script setup>
@@ -337,6 +365,7 @@ import { baseUrl } from '@/utils/request.js';
 import CategoryTree from '@/components/CategoryTree.vue';
 import CommonModal from '@/components/CommonModal.vue';
 import LatexText from '@/components/LatexText.vue';
+import Whiteboard from '@/components/Whiteboard.vue';
 
 // --- State ---
 const activeTab = ref('question_bank');
@@ -906,7 +935,7 @@ page { height: 100%; overflow: hidden; font-family: "SimSun", "Songti SC", serif
     background-color: #2563eb;
 }
 .setting-btn.active { background-color: #dbeafe; color: #2563eb; }
-.popover-menu { position: absolute; top: 100%; right: 0; margin-top: 2px; background: white; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 100; border-radius: 6px; width: 160px; }
+.popover-menu { position: absolute; top: 100%; right: 0; margin-top: 2px; background: white; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 100; border-radius: 6px; width: 110px; text-align: center;}
 .menu-item { padding: 8px 12px; font-size: 13px; cursor: pointer; &:hover { background: #f8fafc; } }
 .menu-item.header { font-weight: bold; color: #94a3b8; font-size: 12px; border-bottom: 1px solid #eee; }
 .divider-h { height: 1px; background: #f1f5f9; margin: 4px 0; }
@@ -1093,5 +1122,6 @@ page { height: 100%; overflow: hidden; font-family: "SimSun", "Songti SC", serif
 .trunc { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 90%; }
 .del-x { color: #ef4444; cursor: pointer; font-weight: bold; }
 .link-btn { color: #2563eb; font-size: 12px; cursor: pointer; }
+.whiteboard-wrapper { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
 @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 </style>
