@@ -1,5 +1,5 @@
 <template>
-	<view class="modal-mask" v-if="isOpen" @click="$emit('close')">
+	<view class="modal-mask" v-if="isOpen" >
 		<view class="modal-container" :style="{ maxWidth: maxWidth, width: '100%' }" @click.stop>
 			<view class="modal-header">
 				<text class="modal-title">{{ title }}</text>

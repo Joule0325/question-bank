@@ -327,13 +327,13 @@
         </view>
         <view class="f-item mt-2">
           <view class="row-btw"><text class="lbl">题干</text><text v-if="formData.image" class="sm-txt blue">已含图</text></view>
-          <textarea class="txt-area h-24" v-model="formData.title" placeholder="支持 LaTeX"></textarea>
+          <textarea class="txt-area h-24" v-model="formData.title" placeholder="支持 LaTeX" maxlength="-1"></textarea>
         </view>
         <view v-if="['单选题','多选题'].includes(formData.type)" class="opt-setting mt-2">
           <view class="row-btw mb-1"><text class="lbl">选项</text><picker :range="['1列','2列','4列']" @change="e => formData.optionLayout=[1,2,4][e.detail.value]"><text class="sm-txt">布局: {{ formData.optionLayout }}列</text></picker></view>
           <view class="grid-2"><view v-for="k in ['A','B','C','D']" :key="k" class="row-ac"><text class="bold mr-1">{{k}}.</text><input class="inp" v-model="formData.options[k]"/></view></view>
         </view>
-        <view class="f-item mt-2"><text class="lbl">答案解析</text><textarea class="txt-area h-20" v-model="formData.answer"></textarea></view>
+        <view class="f-item mt-2"><text class="lbl">答案解析</text><textarea class="txt-area h-20" v-model="formData.answer" maxlength="-1"></textarea></view>
         <view class="foot-btns"><button class="btn" @click="showAddModal=false">取消</button><button class="btn primary" @click="handleSave">保存</button></view>
       </view>
     </CommonModal>
@@ -512,24 +512,61 @@ traverse(data, '');
 flatLeaves.value = leaves;
 };
 
+// pages/index/index.vue
+
 const loadQuestions = async () => {
-if(!currentSubjectId.value) return;
-loading.value = true;
-const params = { subjectId: currentSubjectId.value };
-if(selectedType.value !== '全部') params.type = selectedType.value;
-if(selectedDiff.value !== '全部') params.difficulty = selectedDiff.value;
-if(selectedTags.value.length) params.tags = selectedTags.value.join(',');
-if(selectedCategoryIds.value.length) {
-const allIds = new Set();
-selectedCategoryIds.value.forEach(sid => {
-const node = findNode(categories.value, sid);
-if(node) getAllLeafIds([node]).forEach(id => allIds.add(id));
-});
-if(allIds.size > 0) params.categoryIds = Array.from(allIds).join(',');
-}
-const res = await getQuestions(params);
-questions.value = (res.data || []).map(q => ({...q, tags: q.tags||[], code: q.code||'A'+q.id.substr(-4)}));
-loading.value = false;
+    if (!currentSubjectId.value) return;
+    loading.value = true;
+    
+    // ... 构建 params 的代码保持不变 ...
+    const params = { subjectId: currentSubjectId.value };
+    if (selectedType.value !== '全部') params.type = selectedType.value;
+    if (selectedDiff.value !== '全部') params.difficulty = selectedDiff.value;
+    if (selectedTags.value.length) params.tags = selectedTags.value.join(',');
+    if (selectedCategoryIds.value.length) {
+        const allIds = new Set();
+        selectedCategoryIds.value.forEach(sid => {
+            const node = findNode(categories.value, sid);
+            if (node) getAllLeafIds([node]).forEach(id => allIds.add(id));
+        });
+        if (allIds.size > 0) params.categoryIds = Array.from(allIds).join(',');
+    }
+
+    try {
+        const res = await getQuestions(params);
+        
+        // ★★★ 核心修复：解析 options ★★★
+        questions.value = (res.data || []).map(q => {
+            let parsedOptions = q.options;
+            
+            // 如果后端返回的是字符串（JSON string），则手动解析
+            if (typeof parsedOptions === 'string') {
+                try {
+                    parsedOptions = JSON.parse(parsedOptions);
+                } catch (e) {
+                    console.error('选项解析失败:', e);
+                    parsedOptions = {}; // 解析失败则给空对象，防止报错
+                }
+            }
+            
+            // 如果是 null 或 undefined，初始化为空对象
+            if (!parsedOptions) {
+                parsedOptions = { A: '', B: '', C: '', D: '' };
+            }
+
+            return {
+                ...q,
+                options: parsedOptions, // 使用处理后的对象
+                tags: q.tags || [],
+                code: q.code || 'A' + q.id.toString().substr(-4)
+            };
+        });
+    } catch (e) {
+        console.error(e);
+        uni.showToast({ title: '加载失败', icon: 'none' });
+    } finally {
+        loading.value = false;
+    }
 };
 
 const handleTagClick = (tag) => {
@@ -830,7 +867,17 @@ const closeKpDropdown = () => kpSearchResults.value = [];
 const handleSave = async () => { if(!formData.title) return uni.showToast({title:'请输入题干', icon:'none'}); const payload = { ...formData, subjectId: currentSubjectId.value }; if(isEditing.value) await updateQuestion(formData.id, payload); else await saveQuestion(payload); showAddModal.value = false; loadQuestions(); };
 const handleDelete = async (id) => { uni.showModal({ content: '确定删除?', success: async (res) => { if(res.confirm) { await deleteQuestion(id); loadQuestions(); } } }); };
 const openAddModal = () => { isEditing.value = false; Object.assign(formData, { id:'', year:'2023', source:'', difficulty:1, type:'单选题', title:'', image:'', answer:'', options:{A:'',B:'',C:'',D:''}, categoryIds:[], tags:[] }); kpSearch.value = ''; kpSearchResults.value = []; tagInput.value = ''; showAddModal.value = true; };
-const openEditModal = (q) => { isEditing.value = true; Object.assign(formData, JSON.parse(JSON.stringify(q))); showAddModal.value = true; };
+const openEditModal = (q) => {
+    isEditing.value = true;
+    // 使用 Object.assign 时，确保数组字段即使是 null 也被初始化为 []
+    Object.assign(formData, {
+        ...JSON.parse(JSON.stringify(q)),
+        categoryIds: q.categoryIds || [], // 关键修复：防止为 null
+        tags: q.tags || [],               // 关键修复：防止为 null
+        options: q.options || { A: '', B: '', C: '', D: '' } // 防止 options 结构丢失
+    });
+    showAddModal.value = true;
+};
 const addCategory = (id) => !formData.categoryIds.includes(id) && formData.categoryIds.push(id);
 const removeCategory = (id) => formData.categoryIds = formData.categoryIds.filter(x => x!==id);
 const addTag = () => { if(tagInput.value) { formData.tags.push(tagInput.value); tagInput.value=''; } };
@@ -846,7 +893,7 @@ const toggleAnswer = (id) => showAnswerMap.value[id] = !showAnswerMap.value[id];
 
 <style lang="scss">
 /* Reuse existing styles, add new ones */
-page { height: 100%; overflow: hidden; font-family: "SimSun", "Songti SC", serif; }
+page { height: 100%; overflow: hidden; font-family: "Times New Roman", "SimSun", "Songti SC", serif;}
 .layout-shell { display: flex; width: 100%; height: 100vh; background-color: #f8fafc; }
 .app-sidebar { width: 80px; background: #0f172a; display: flex; flex-direction: column; align-items: center; padding: 20px 0; color: #94a3b8; flex-shrink: 0; }
 .logo-area { color: white; font-weight: bold; font-size: 18px; margin-bottom: 30px; }
@@ -1124,4 +1171,30 @@ page { height: 100%; overflow: hidden; font-family: "SimSun", "Songti SC", serif
 .link-btn { color: #2563eb; font-size: 12px; cursor: pointer; }
 .whiteboard-wrapper { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
 @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+/* 1. 确保父容器开启 Flex 顶部对齐 */
+.opt-item {
+    display: flex;
+    align-items: flex-start; /* 顶部对齐 */
+    margin-bottom: 8px;
+}
+
+/* 2. 修改选项标签样式，使其参数与 LatexText 保持一致 */
+.opt-key {
+    /* 必须与 LatexText.vue 中的设置一致 */
+    font-size: 16px;   
+    line-height: 1.8;  
+    
+    font-weight: bold;
+    margin-right: 6px;
+    flex-shrink: 0; /* 防止被挤压 */
+    
+    margin-top: 3px; 
+}
+
+/* 如果 LatexText 组件支持透传 class，或者你可以直接控制它 */
+/* 这里假设我们通过父级控制 LatexText 的容器 */
+.opt-item :deep(.latex-text-container) {
+  flex: 1;                 /* 让内容占据剩余宽度 */
+  width: auto;             /* 覆盖原本可能设置的 width: 100% */
+}
 </style>
